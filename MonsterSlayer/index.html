@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monster Slayer</title>
+    <script src="https://npmcdn.com/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="css/foundation.min.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+    <section class="row">
+        <div class="small-6 columns">
+            <h1 class="text-center">YOU</h1>
+            <div class="healthbar">
+                <div class="healthbar text-center"
+                    style="background-color: green; margin: 0; color: white;"
+                    :style="{width: playerHealth + '%'}">
+                    {{ playerHealth }}
+                </div>
+            </div>
+        </div>
+        <div class="small-6 columns">
+            <h1 class="text-center">MONSTER</h1>
+            <div class="healthbar">
+                <div class="healthbar text-center"
+                    style="background-color: green; margin: 0; color: white;"
+                    :style="{width: monsterHealth + '%'}">
+                    {{ monsterHealth }}
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="row controls" v-if="!isGameRunning">
+        <div class="small-12 columns">
+            <button id="start-game" @click="startNewGame()">START NEW GAME</button>
+        </div>
+        
+    </section>
+    <section class="row controls" v-else>
+        <div class="small-12 columns">
+            <button id="attack" @click="newPlayerAttack()">ATTACK</button>
+            <button id="special-attack" @click="newPlayerSpecialAttack()">SPECIAL ATTACK</button>
+            <button id="heal" @click="newHeal()">HEAL</button>
+            <button id="give-up" @click="resetGame()">GIVE UP</button>
+        </div>
+    </section>
+    <section class="row log">
+        <div class="small-12 columns">
+            <ul>
+                <li v-for="damageTrade in damages">
+                    <div v-for="(value, key, index) in damageTrade">
+                        <div v-if="index == 0" class="player-turn">
+                            <template v-if="isHealingTurn">
+                                    Player heals himself for {{ newHealAmount }}
+                            </template>
+                            <template v-else>
+                                    Player hits monster for {{ value }}
+                            </template>
+                        </div>
+                        <div v-if="index == 1" class="monster-turn">
+                                Monster hits player for {{ value }}
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
+<script>
+    let app = new Vue({
+        el:"#app",
+        data:{
+            isGameRunning: false,
+            playerHealth : 100,
+            monsterHealth: 100,
+            newPlayerAttackAmount: 0,
+            newMonsterAttackAmount: 0,
+            newHealAmount: 0,
+            damages: [],
+            isHealingTurn: false
+        },
+        methods:{
+
+            // Start new game
+            startNewGame: function(){
+                this.isGameRunning = true
+            },
+
+            // The player attacked (calculate the amount)
+            newPlayerAttack: function(){
+                this.isHealingTurn = false
+                this.newPlayerAttackAmount = Math.floor(Math.random()* 10 + 4)
+                this.manageDatasRound()
+            },
+
+            // The player attacked with a special attack (calculate the amount)
+            newPlayerSpecialAttack: function(){
+                this.isHealingTurn = false
+                this.newPlayerAttackAmount = Math.floor(Math.random()*10 + 4) * 2
+                this.manageDatasRound()
+            },
+
+            // The player healed himself
+            newHeal: function(){
+                this.newHealAmount = 10
+                this.isHealingTurn = true
+                this.manageDatasRound()
+            },
+
+            // The monster attacked (calculate the amount)
+            newMonsterAttack: function(){
+                this.newMonsterAttackAmount = Math.floor(Math.random()*10 + 4)
+            },
+
+            // We apply all damages and potential heals
+            manageDatasRound: function(){
+                this.newMonsterAttack()
+
+                // We apply damages
+                this.playerHealth -= this.newMonsterAttackAmount
+                this.monsterHealth -= this.newPlayerAttackAmount
+
+                // We check player and monster health range
+                if(this.playerHealth < 0) {
+                    this.playerHealth = 0
+                }
+                if(this.monsterHealth < 0) {
+                    this.monsterHealth = 0
+                }
+
+                // If the player chose to heal, we apply it
+                if (this.isHealingTurn == true) {
+
+                    if(this.playerHealth < 100 - this.newHealAmount) {
+                        this.playerHealth += this.newHealAmount
+                    } else {
+                        this.playerHealth = 100
+                    }
+
+                    this.newPlayerAttackAmount = 0
+
+                } else {
+                    this.newHealAmount = 0
+                }
+
+                // We push damages for the logs
+                this.damages.unshift({
+                    playerDamages: this.newPlayerAttackAmount,
+                    monsterDamages: this.newMonsterAttackAmount
+                })
+
+                if(this.monsterHealth == 0){
+                    if (confirm('You won! New Game?')) {
+                        this.resetGame()
+                    }
+                }
+
+                if(this.playerHealth == 0){
+                    if (confirm('You lost! New Game?')) {
+                        this.resetGame()
+                    }
+                }
+            },
+
+            // We reset the game
+            resetGame: function(){
+                this.damages = []
+                this.isGameRunning = false
+                this.playerHealth = 100
+                this.monsterHealth = 100
+            }
+        },
+    })
+</script>
+</body>
+</html>
