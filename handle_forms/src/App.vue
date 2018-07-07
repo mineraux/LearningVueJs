@@ -61,7 +61,6 @@
                                     v-model="sendMail"> Send Infomail
                         </label>
                     </div>
-
                 </div>
             </div>
             <div class="row">
