@@ -6,15 +6,17 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-export default {    
-    computed: {
-        ...mapGetters([
-        'doubleCounter',
-        'stringCounter'
-    ])
+    import { mapGetters } from 'vuex'
+    import * as types from '../store/types.js'
+
+    export default {    
+        computed: {
+            ...mapGetters({
+                doubleCounter: types.DOUBLE_COUNTER,
+                stringCounter: types.CLICK_COUNTER
+            })
+        }
     }
-}
 </script>
 
 <style scoped>
